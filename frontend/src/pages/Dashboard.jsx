@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import * as tasksApi from '../api/tasks'
+import * as usersApi from '../api/users'
 import TaskItem from '../components/TaskItem'
 import TaskForm from '../components/TaskForm'
+import { useAuth } from '../context/AuthContext'
 
 const filters = [
   { key: 'all', label: 'All' },
@@ -11,7 +13,10 @@ const filters = [
 ]
 
 export default function Dashboard() {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const [tasks, setTasks] = useState([])
+  const [users, setUsers] = useState([])
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -31,6 +36,13 @@ export default function Dashboard() {
     load(filter)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter])
+
+  useEffect(() => {
+    if (isAdmin) {
+      usersApi.listUsers().then(setUsers)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin])
 
   const handleCreate = async (payload) => {
     await tasksApi.createTask(payload)
@@ -58,13 +70,15 @@ export default function Dashboard() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Your tasks</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          + New task
-        </button>
+        <h1 className="text-xl font-semibold text-slate-900">{isAdmin ? 'All tasks' : 'Your tasks'}</h1>
+        {isAdmin && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          >
+            + New task
+          </button>
+        )}
       </div>
 
       <div className="mb-4 flex gap-1">
@@ -93,6 +107,7 @@ export default function Dashboard() {
             <TaskItem
               key={task.id}
               task={task}
+              isAdmin={isAdmin}
               onToggle={handleToggle}
               onEdit={setEditingTask}
               onDelete={handleDelete}
@@ -101,10 +116,11 @@ export default function Dashboard() {
         </div>
       )}
 
-      {showForm && <TaskForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />}
+      {showForm && <TaskForm users={users} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />}
       {editingTask && (
         <TaskForm
           initialTask={editingTask}
+          users={users}
           onSubmit={handleUpdate}
           onCancel={() => setEditingTask(null)}
         />

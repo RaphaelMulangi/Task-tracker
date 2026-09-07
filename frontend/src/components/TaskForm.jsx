@@ -7,13 +7,14 @@ function toDatetimeLocal(value) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export default function TaskForm({ initialTask, onSubmit, onCancel }) {
+export default function TaskForm({ initialTask, users, onSubmit, onCancel }) {
   const [form, setForm] = useState({
     title: initialTask?.title || '',
     description: initialTask?.description || '',
     due_date: toDatetimeLocal(initialTask?.due_date),
     reminder_at: toDatetimeLocal(initialTask?.reminder_at),
     priority: initialTask?.priority || 'medium',
+    user_id: initialTask?.user_id || '',
   })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -55,6 +56,26 @@ export default function TaskForm({ initialTask, onSubmit, onCancel }) {
               onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
           </div>
+          {users && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Assign to</label>
+              <select
+                required
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                value={form.user_id}
+                onChange={(e) => setForm({ ...form, user_id: e.target.value })}
+              >
+                <option value="" disabled>
+                  Select a user
+                </option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Description</label>
             <textarea

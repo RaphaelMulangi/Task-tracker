@@ -23,6 +23,7 @@ class UpdateTaskRequest extends FormRequest
             'reminder_at' => ['nullable', 'date'],
             'priority' => ['nullable', 'in:low,medium,high'],
             'status' => ['nullable', 'in:pending,completed'],
+            'user_id' => ['sometimes', 'required', 'exists:users,id'],
         ];
     }
 }

@@ -22,6 +22,7 @@ class StoreTaskRequest extends FormRequest
             'due_date' => ['nullable', 'date'],
             'reminder_at' => ['nullable', 'date'],
             'priority' => ['nullable', 'in:low,medium,high'],
+            'user_id' => ['required', 'exists:users,id'],
         ];
     }
 }

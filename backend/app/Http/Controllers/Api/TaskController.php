@@ -13,7 +13,15 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
-        $query = $request->user()->tasks()->orderBy('due_date');
+        $query = $request->user()->isAdmin()
+            ? Task::query()->with('user:id,name,email')
+            : $request->user()->tasks();
+
+        $query->orderBy('due_date');
+
+        if ($request->user()->isAdmin() && $request->filled('assigned_to')) {
+            $query->where('user_id', $request->query('assigned_to'));
+        }
 
         match ($request->query('status')) {
             'pending' => $query->pending(),
@@ -27,7 +35,7 @@ class TaskController extends Controller
 
     public function store(StoreTaskRequest $request)
     {
-        $task = $request->user()->tasks()->create($request->validated())->fresh();
+        $task = Task::create($request->validated())->fresh();
 
         return response()->json($task, 201);
     }
@@ -80,7 +88,7 @@ class TaskController extends Controller
 
     private function authorizeOwner(Request $request, Task $task): void
     {
-        if ($task->user_id !== $request->user()->id) {
+        if (! $request->user()->isAdmin() && $task->user_id !== $request->user()->id) {
             abort(Response::HTTP_FORBIDDEN, 'You do not own this task.');
         }
     }

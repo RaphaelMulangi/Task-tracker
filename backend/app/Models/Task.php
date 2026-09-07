@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
 
 #[Fillable([
-    'title', 'description', 'due_date', 'reminder_at', 'priority', 'status',
+    'user_id', 'title', 'description', 'due_date', 'reminder_at', 'priority', 'status',
     'completed_at', 'reminder_sent_at', 'overdue_notified_at',
 ])]
 class Task extends Model
